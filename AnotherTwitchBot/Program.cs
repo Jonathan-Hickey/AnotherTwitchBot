@@ -1,8 +1,8 @@
 ﻿using System;
-using System.IO;
-using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
+using AnotherTwitchBot.Clients.Implementation;
+using AnotherTwitchBot.Clients.Interfaces;
+using AnotherTwitchBot.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -11,19 +11,18 @@ namespace AnotherTwitchBot
 {
     class Program
     {
-        // Bot settings
-        private static IConfigurationRoot _configuration;
+       
 
         static async Task Main(string[] args)
         {
-            _configuration = new ConfigurationBuilder()
+            var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();
 
 
-            var startUp = new StartUp();
+            var startUp = new StartUp(configuration);
             var serviceCollection = new ServiceCollection();
             startUp.ConfigureServices(serviceCollection);
 
@@ -31,6 +30,7 @@ namespace AnotherTwitchBot
             
             var twitchClient = serviceProvider.GetService<ITwitchClient>();
             var twitchConfig = serviceProvider.GetService<IOptions<TwitchConfig>>().Value;
+
             // Ping to the server to make sure this bot stays connected to the chat
             // Server will respond back to this bot with a PONG (without quotes):
             // Example: ":tmi.twitchClient.tv PONG tmi.twitchClient.tv :twitchClient.twitchClient.tv"
@@ -86,149 +86,5 @@ namespace AnotherTwitchBot
                 }
             }
         }
-
-        public class StartUp
-        {
-            public void ConfigureServices(IServiceCollection service)
-            {
-                service.Configure<TwitchConfig>(_configuration.GetSection("twitch_irc"));
-                service.AddSingleton<ITwitchClient, TwitchClient>();
-            }
-        }
-
-
     }
-    public class TwitchConfig
-    {
-        public string UserName { get; set; }
-        public string Channel { get; set; }
-        public string OAuthToken { get; set; }
-        public string Server { get; set; }
-        public int Port { get; set; }
-
-    }
-
-
-    public interface ITwitchClient
-    {
-        void SendIrcMessage(string message);
-        void SendPublicChatMessage(string message);
-        Task<string> ReadMessageAsync();
-    }
-
-
-    public class TwitchClient : ITwitchClient
-    {
-        private TcpClient _tcpClient;
-        private StreamReader _inputStream;
-        private StreamWriter _outputStream;
-        private NetworkStream _networkStream;
-        private readonly TwitchConfig _twitchConfig;
-
-
-        public TwitchClient(IOptions<TwitchConfig> twitchConfigOptions)
-        {
-            try
-            {
-                _twitchConfig = twitchConfigOptions.Value;
-
-                _tcpClient = new TcpClient(_twitchConfig.Server, _twitchConfig.Port);
-                _networkStream = _tcpClient.GetStream();
-                _inputStream = new StreamReader(_networkStream);
-                _outputStream = new StreamWriter(_networkStream) { NewLine = "\r\n", AutoFlush = true }; ;
-
-
-                // Try to join the room
-                _outputStream.WriteLine("PASS " + _twitchConfig.OAuthToken);
-                _outputStream.WriteLine("NICK " + _twitchConfig.UserName);
-                _outputStream.WriteLine("USER " + _twitchConfig.UserName + " 8 * :" + _twitchConfig.UserName);
-                _outputStream.WriteLine("JOIN #" + _twitchConfig.Channel);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-     
-        public void SendIrcMessage(string message)
-        {
-            try
-            {
-                _outputStream.WriteLine(message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
-        public void SendPublicChatMessage(string message)
-        {
-            try
-            {
-                SendIrcMessage(":" + _twitchConfig.UserName + "!" + _twitchConfig.UserName + "@" + _twitchConfig.UserName +
-                               ".twitchClient.chat.twitchClient.tv PRIVMSG #" + _twitchConfig.Channel + " :" + message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
-        public async Task<string> ReadMessageAsync()
-        {
-            try
-            {
-                if (_networkStream.DataAvailable)
-                {
-                    return await _inputStream.ReadLineAsync();
-                }
-
-                await Task.Delay(100);
-                return string.Empty;
-            }
-            catch (Exception ex)
-            {
-                return "Error receiving message: " + ex.Message;
-            }
-        }
-    }
-
-
-    /*
-    * Class that sends PING to twitchClient server every 5 minutes
-    */
-    public class PingSender
-    {
-        private ITwitchClient _twitchClient;
-        private Thread pingSender;
-
-        // Empty constructor makes instance of Thread
-        public PingSender(ITwitchClient twitchClient)
-        {
-            _twitchClient = twitchClient;
-            pingSender = new Thread(new ThreadStart(this.Run));
-        }
-
-        // Starts the thread
-        public void Start()
-        {
-            pingSender.IsBackground = true;
-            pingSender.Start();
-        }
-
-        // Send PING to twitchClient server every 5 minutes
-        public void Run()
-        {
-            while (true)
-            {
-                _twitchClient.SendIrcMessage("PING twitchClient.twitchClient.tv");
-                Thread.Sleep(300000); // 5 minutes
-            }
-        }
-    }
-
-
-
-    
 }
