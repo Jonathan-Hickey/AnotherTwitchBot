@@ -1,6 +1,8 @@
 ﻿using AnotherTwitchBot.Clients.Implementation;
 using AnotherTwitchBot.Clients.Interfaces;
 using AnotherTwitchBot.Options;
+using AnotherTwitchBot.Services.Implementation;
+using AnotherTwitchBot.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,10 +16,12 @@ namespace AnotherTwitchBot
         {
             _configurationRoot = configurationRoot;
         }
+
         public void ConfigureServices(IServiceCollection service)
         {
             service.Configure<TwitchConfig>(_configurationRoot.GetSection("twitch_irc"));
             service.AddSingleton<ITwitchClient, TwitchClient>();
+            service.AddSingleton<IMessageParser, MessageParser>();
         }
     }
 }
