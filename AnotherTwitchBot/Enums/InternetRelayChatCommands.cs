@@ -10,6 +10,7 @@
 
     public enum IrcCommand
     {
+        UnknownCommand = -1,
         PrivateMessage = 1,
         Join = 2,
         Ping = 3,

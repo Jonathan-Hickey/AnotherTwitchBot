@@ -7,33 +7,29 @@ namespace AnotherTwitchBot.Services.Implementation
 {
     public class MessageParser : IMessageParser
     {
-        
-        public TwitchClientCommand GetClientCommand(string message)
+        public IrcCommand GetCommandType(string message)
         {
             var messages = message.Split(" ");
 
-            if(int.TryParse(messages[1],out int code ))
+            if (int.TryParse(messages[1], out int code))
             {
-                return null;
+                return IrcCommand.UnknownCommand;
             }
 
-            var ircCommand = GetIrcCommand(messages[1]);
+            return GetIrcCommand(messages[1]);
+        }
 
-            if (ircCommand != IrcCommand.PrivateMessage)
-            {
-                return null;
-            }
-
+        public UserMessageModel GetUserMessageModel(string message)
+        {
             var intIndexParseSign = message.IndexOf(" :");
             var userName = GetUserName(message);
             var channel = GetChannel(message, intIndexParseSign);
             var userMessage = GetUserMessage(message, intIndexParseSign);
 
-            return new TwitchClientCommand
+            return new UserMessageModel
             {
                 UserName = userName,
                 Channel = channel,
-                Command = ircCommand,
                 UserMessage = userMessage
             };
         }

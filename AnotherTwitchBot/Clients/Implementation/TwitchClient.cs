@@ -41,6 +41,19 @@ namespace AnotherTwitchBot.Clients.Implementation
             }
         }
      
+        public Task SendIrcMessageAsync(string message)
+        {
+            try
+            {
+                return _outputStream.WriteLineAsync(message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return Task.CompletedTask;
+            }
+        }
+
         public void SendIrcMessage(string message)
         {
             try
@@ -53,11 +66,11 @@ namespace AnotherTwitchBot.Clients.Implementation
             }
         }
 
-        public void SendPublicChatMessage(string message)
+        public async Task SendPublicChatMessageAsync(string message)
         {
             try
             {
-                SendIrcMessage(":" + _twitchConfig.UserName + "!" + _twitchConfig.UserName + "@" + _twitchConfig.UserName +
+                await SendIrcMessageAsync(":" + _twitchConfig.UserName + "!" + _twitchConfig.UserName + "@" + _twitchConfig.UserName +
                                ".twitchClient.chat.twitchClient.tv PRIVMSG #" + _twitchConfig.Channel + " :" + message);
             }
             catch (Exception ex)
