@@ -16,7 +16,6 @@ namespace AnotherTwitchBot.Clients.Implementation
         private NetworkStream _networkStream;
         private readonly TwitchConfig _twitchConfig;
 
-
         public TwitchClient(IOptions<TwitchConfig> twitchConfigOptions)
         {
             try
@@ -27,7 +26,6 @@ namespace AnotherTwitchBot.Clients.Implementation
                 _networkStream = _tcpClient.GetStream();
                 _inputStream = new StreamReader(_networkStream);
                 _outputStream = new StreamWriter(_networkStream) { NewLine = "\r\n", AutoFlush = true }; ;
-
 
                 // Try to join the room
                 _outputStream.WriteLine("PASS " + _twitchConfig.OAuthToken);
