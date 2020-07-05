@@ -11,12 +11,18 @@ namespace AnotherTwitchBot.Services.Implementation
         {
             var messages = message.Split(" ");
 
+            
             if (int.TryParse(messages[1], out int code))
             {
                 return IrcCommand.UnknownCommand;
             }
 
-            return GetIrcCommand(messages[1]);
+            if (messages.Length > 2)
+            {
+                return GetIrcCommand(messages[1]);
+            }
+            
+            return GetIrcCommand(messages[0]);
         }
 
         public UserMessageModel GetUserMessageModel(string message)
