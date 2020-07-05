@@ -1,6 +1,6 @@
 ﻿namespace AnotherTwitchBot.Options
 {
-    public class TwitchConfig
+    public class TwitchIrcConfig
     {
         public string UserName { get; set; }
         public string Channel { get; set; }

@@ -19,8 +19,8 @@ namespace AnotherTwitchBot
 
         public void ConfigureServices(IServiceCollection service)
         {
-            service.Configure<TwitchConfig>(_configurationRoot.GetSection("twitch_irc"));
-            service.AddSingleton<ITwitchClient, TwitchClient>();
+            service.Configure<TwitchIrcConfig>(_configurationRoot.GetSection("twitch_irc"));
+            service.AddSingleton<ITwitchIrcClient, TwitchIrcClient>();
             service.AddSingleton<IMessageParser, MessageParser>();
             service.AddSingleton<IProcessUserDataService, ProcessUserDataService>();
         }

@@ -5,13 +5,13 @@ namespace AnotherTwitchBot.Clients.Implementation
 {
     public class PingSender : IPingSender
     {
-        private ITwitchClient _twitchClient;
+        private ITwitchIrcClient _twitchIrcClient;
         private Thread pingSender;
 
         // Empty constructor makes instance of Thread
-        public PingSender(ITwitchClient twitchClient)
+        public PingSender(ITwitchIrcClient twitchIrcClient)
         {
-            _twitchClient = twitchClient;
+            _twitchIrcClient = twitchIrcClient;
             pingSender = new Thread(new ThreadStart(this.Run));
         }
 
@@ -27,7 +27,7 @@ namespace AnotherTwitchBot.Clients.Implementation
         {
             while (true)
             {
-                _twitchClient.SendIrcMessage("PING twitchClient.twitchClient.tv");
+                _twitchIrcClient.SendIrcMessage("PING twitchClient.twitchClient.tv");
                 Thread.Sleep(300000); // 5 minutes
             }
         }

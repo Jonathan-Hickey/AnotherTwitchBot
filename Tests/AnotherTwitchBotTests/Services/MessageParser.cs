@@ -17,13 +17,12 @@ namespace AnotherTwitchBotTests.Services
 
             IMessageParser messageParser = new MessageParser();
 
-            var command = messageParser.GetClientCommand(message);
+            var command = messageParser.GetUserMessageModel(message);
 
             command.Should().NotBeNull();
             command.Channel.Should().BeEquivalentTo("jonathan9375");
             command.UserName.Should().BeEquivalentTo("jonathan9375");
             command.UserMessage.Should().BeEquivalentTo("hello world");
-            command.Command.Should().Be(IrcCommand.PrivateMessage);
 
         }
     }

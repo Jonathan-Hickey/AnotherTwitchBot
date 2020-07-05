@@ -6,12 +6,12 @@ using AnotherTwitchBot.Enums;
 using AnotherTwitchBot.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TwitchApiClient.Extensions;
 
 namespace AnotherTwitchBot
 {
     internal class Program
     {
-
         private static async Task Main(string[] args)
         {
             var configuration = new ConfigurationBuilder()
@@ -24,9 +24,11 @@ namespace AnotherTwitchBot
             var serviceCollection = new ServiceCollection();
             startUp.ConfigureServices(serviceCollection);
 
+            serviceCollection.AddTwitchClients(configuration.GetSection("twitch_api"));
+
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var twitchClient = serviceProvider.GetService<ITwitchClient>();
+            var twitchClient = serviceProvider.GetService<ITwitchIrcClient>();
             var messageParser = serviceProvider.GetService<IMessageParser>();
             var processUserDataService = serviceProvider.GetService<IProcessUserDataService>();
             var ping = new PingSender(twitchClient);
@@ -34,10 +36,8 @@ namespace AnotherTwitchBot
             
             await twitchClient.SendPublicChatMessageAsync("Bot is active!");
 
-            // Listen to the chat until program exits
             while (true)
             {
-                // Read any message from the chat room
                 var message = await twitchClient.ReadMessageAsync();
 
                 if (!string.IsNullOrEmpty(message))
@@ -48,14 +48,9 @@ namespace AnotherTwitchBot
 
                     switch (command)
                     {
-                        //    case IrcCommand.Ping:
-                        //    case IrcCommand.Pong:
-                        //        await twitchClient.SendIrcMessageAsync("PING twitchClient.twitchClient.tv");
-                        //break;
                         case IrcCommand.PrivateMessage:
                             await processUserDataService.Process(message);
                             break;
-
                         default:
                             break;
                     }

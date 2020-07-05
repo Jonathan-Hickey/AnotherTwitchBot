@@ -2,7 +2,7 @@
 
 namespace AnotherTwitchBot.Clients.Interfaces
 {
-    public interface ITwitchClient
+    public interface ITwitchIrcClient
     {
         Task SendIrcMessageAsync(string message);
         Task SendPublicChatMessageAsync(string message);

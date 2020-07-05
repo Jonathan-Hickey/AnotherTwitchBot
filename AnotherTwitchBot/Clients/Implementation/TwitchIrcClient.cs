@@ -8,30 +8,30 @@ using Microsoft.Extensions.Options;
 
 namespace AnotherTwitchBot.Clients.Implementation
 {
-    public class TwitchClient : ITwitchClient
+    public class TwitchIrcClient : ITwitchIrcClient
     {
         private TcpClient _tcpClient;
         private StreamReader _inputStream;
         private StreamWriter _outputStream;
         private NetworkStream _networkStream;
-        private readonly TwitchConfig _twitchConfig;
+        private readonly TwitchIrcConfig _twitchIrcConfig;
 
-        public TwitchClient(IOptions<TwitchConfig> twitchConfigOptions)
+        public TwitchIrcClient(IOptions<TwitchIrcConfig> twitchConfigOptions)
         {
             try
             {
-                _twitchConfig = twitchConfigOptions.Value;
+                _twitchIrcConfig = twitchConfigOptions.Value;
 
-                _tcpClient = new TcpClient(_twitchConfig.Server, _twitchConfig.Port);
+                _tcpClient = new TcpClient(_twitchIrcConfig.Server, _twitchIrcConfig.Port);
                 _networkStream = _tcpClient.GetStream();
                 _inputStream = new StreamReader(_networkStream);
                 _outputStream = new StreamWriter(_networkStream) { NewLine = "\r\n", AutoFlush = true }; ;
 
                 // Try to join the room
-                _outputStream.WriteLine("PASS " + _twitchConfig.OAuthToken);
-                _outputStream.WriteLine("NICK " + _twitchConfig.UserName);
-                _outputStream.WriteLine("USER " + _twitchConfig.UserName + " 8 * :" + _twitchConfig.UserName);
-                _outputStream.WriteLine("JOIN #" + _twitchConfig.Channel);
+                _outputStream.WriteLine("PASS " + _twitchIrcConfig.OAuthToken);
+                _outputStream.WriteLine("NICK " + _twitchIrcConfig.UserName);
+                _outputStream.WriteLine("USER " + _twitchIrcConfig.UserName + " 8 * :" + _twitchIrcConfig.UserName);
+                _outputStream.WriteLine("JOIN #" + _twitchIrcConfig.Channel);
             }
             catch (Exception ex)
             {
@@ -68,8 +68,8 @@ namespace AnotherTwitchBot.Clients.Implementation
         {
             try
             {
-                await SendIrcMessageAsync(":" + _twitchConfig.UserName + "!" + _twitchConfig.UserName + "@" + _twitchConfig.UserName +
-                               ".twitchClient.chat.twitchClient.tv PRIVMSG #" + _twitchConfig.Channel + " :" + message);
+                await SendIrcMessageAsync(":" + _twitchIrcConfig.UserName + "!" + _twitchIrcConfig.UserName + "@" + _twitchIrcConfig.UserName +
+                               ".twitchIrcClient.chat.twitchIrcClient.tv PRIVMSG #" + _twitchIrcConfig.Channel + " :" + message);
             }
             catch (Exception ex)
             {
